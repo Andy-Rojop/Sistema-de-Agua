@@ -45,12 +45,21 @@ function encoder() {
     line(s) { this.text(s); push(LF); return this; },
     sep() { this.line('-'.repeat(ANCHO)); return this; },
     cut() {
-      // Sin cortador: avanza papel para rasgar en la Sigma portátil 58 mm.
       push(LF, LF, LF, LF);
       return this;
     },
     bytes() { return Uint8Array.from(partes); },
   };
+}
+
+/** Símbolos que en CP850/58 mm salen como "?" → ASCII seguro. */
+function sanear(s) {
+  return String(s == null ? '' : s)
+    .replace(/\u00B7/g, '-')   // ·
+    .replace(/\u00D7/g, 'x')   // ×
+    .replace(/\u2212/g, '-')   // −
+    .replace(/\u00B3/g, '3')   // ³
+    .replace(/\u2013|\u2014/g, '-');
 }
 
 function latin(code) {
@@ -63,11 +72,43 @@ function latin(code) {
   return map[code] || 0x3F;
 }
 
+/** Parte por palabras; no corta a mitad de palabra. */
+function envolver(texto, ancho) {
+  const limpio = sanear(texto).trim();
+  if (!limpio) return [''];
+  const palabras = limpio.split(/\s+/);
+  const out = [];
+  let linea = '';
+  for (let i = 0; i < palabras.length; i++) {
+    let p = palabras[i];
+    while (p.length > ancho) {
+      if (linea) { out.push(linea); linea = ''; }
+      out.push(p.slice(0, ancho));
+      p = p.slice(ancho);
+    }
+    if (!linea) linea = p;
+    else if (linea.length + 1 + p.length <= ancho) linea += ' ' + p;
+    else { out.push(linea); linea = p; }
+  }
+  if (linea) out.push(linea);
+  return out;
+}
+
+function lineasCentradas(doc, texto, ancho) {
+  envolver(texto, ancho).forEach(function (l) { doc.line(l); });
+}
+
 function fila(doc, etiqueta, valor) {
-  const izq = String(etiqueta);
-  const der = String(valor);
-  const hueco = Math.max(1, ANCHO - izq.length - der.length);
-  doc.line(izq + ' '.repeat(hueco) + der);
+  const izq = sanear(etiqueta);
+  const der = sanear(valor);
+  if (izq.length + 1 + der.length <= ANCHO) {
+    const hueco = Math.max(1, ANCHO - izq.length - der.length);
+    doc.line(izq + ' '.repeat(hueco) + der);
+    return;
+  }
+  envolver(izq, ANCHO).forEach(function (l) { doc.line(l); });
+  const pad = Math.max(0, ANCHO - der.length);
+  doc.line(' '.repeat(pad) + der);
 }
 
 function estadoEtiqueta(estado) {
@@ -81,17 +122,20 @@ export function componerEscPos(r) {
   const doc = encoder().init();
   const junta = r.junta || {};
 
-  doc.align('center').bold(true).size(0x11);
-  doc.line(junta.junta_nombre || 'Comité de Agua');
-  doc.size(0).bold(false);
-  if (junta.junta_direccion) doc.line(junta.junta_direccion);
-  if (junta.junta_telefono) doc.line('Tel. ' + junta.junta_telefono);
-  doc.line('Agua potable · Parcelamiento Santa Fe');
+  // 58 mm: sin doble ancho en el encabezado (con 0x11 solo caben ~16 caracteres).
+  doc.align('center').bold(true).size(0);
+  lineasCentradas(doc, junta.junta_nombre || 'Comite de Agua', ANCHO);
+  doc.bold(false);
+  if (junta.junta_direccion) lineasCentradas(doc, junta.junta_direccion, ANCHO);
+  if (junta.junta_telefono) lineasCentradas(doc, 'Tel. ' + junta.junta_telefono, ANCHO);
+  lineasCentradas(doc, 'Agua potable - Santa Fe', ANCHO);
   doc.sep();
-  doc.bold(true).size(0x11).line('RECIBO N. ' + r.correlativo);
+
+  doc.bold(true).size(0x11);
+  lineasCentradas(doc, 'RECIBO N. ' + r.correlativo, Math.floor(ANCHO / 2));
   doc.size(0).bold(false);
   if (r.emitidoEn) {
-    doc.line(new Date(r.emitidoEn).toLocaleString('es-GT'));
+    lineasCentradas(doc, new Date(r.emitidoEn).toLocaleString('es-GT'), ANCHO);
   }
   doc.align('left').sep();
 

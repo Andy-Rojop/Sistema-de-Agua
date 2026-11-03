@@ -83,14 +83,28 @@ input, select, textarea { font: inherit; color: inherit; }
   display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 6px; color: var(--tinta-media);
 }
 .ingreso input {
-  width: 100%; padding: 10px 12px; border-radius: 6px; margin-bottom: 14px;
+  width: 100%; min-height: 48px; padding: 12px 14px; border-radius: 6px; margin-bottom: 14px;
   border: 1px solid var(--linea); background: #fff; color: var(--tinta);
+  font-size: 16px; /* evita zoom automático en iOS */
 }
 .ingreso input:focus {
   outline: none; border-color: var(--agua);
   box-shadow: 0 0 0 3px rgba(27,107,147,.15);
 }
 .ingreso input::placeholder { color: #A0A8B0; }
+.campo-clave {
+  position: relative; margin-bottom: 14px;
+}
+.campo-clave input {
+  margin-bottom: 0; padding-right: 48px;
+}
+.campo-clave-ojo {
+  position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+  width: 44px; height: 44px; display: grid; place-items: center;
+  color: var(--tinta-media); border-radius: 6px;
+}
+.campo-clave-ojo:hover { color: var(--agua); background: var(--agua-claro); }
+.campo-clave-ojo[aria-pressed="true"] { color: var(--agua); }
 .ingreso-error {
   color: var(--ladrillo); font-size: 13.5px; margin: -4px 0 12px; line-height: 1.45;
 }
@@ -214,10 +228,30 @@ input, select, textarea { font: inherit; color: inherit; }
 }
 .encabezado-sitio-btn.claro:hover { border-color: #fff; background: rgba(255,255,255,.08); }
 @media (max-width: 860px) {
-  .encabezado-sitio-inner { padding: 12px 16px; }
+  .encabezado-sitio-inner {
+    padding: 12px 16px;
+    flex-wrap: wrap; align-items: flex-start;
+  }
+  .encabezado-sitio-marca { gap: 12px; width: 100%; }
+  .encabezado-sitio-acciones {
+    width: 100%; justify-content: stretch;
+  }
+  .encabezado-sitio-btn { width: 100%; text-align: center; min-height: 44px; }
+  .ingreso-marco { padding: 20px 14px 32px; margin: 0 auto; }
+  .ingreso-tarjeta { padding: 20px 16px 18px; }
+  .ingreso .btn-grande { min-height: 48px; font-size: 16px; }
 }
 @media (max-width: 560px) {
-  .encabezado-titular-lema { font-size: 11px; letter-spacing: .03em; }
+  .encabezado-sitio-marca .escudo-bloque { width: 56px !important; }
+  .encabezado-titular-nombre { font-size: 20px; }
+  .encabezado-titular-lema {
+    font-size: 11px; letter-spacing: .02em; text-transform: none;
+    line-height: 1.4;
+  }
+  .panel-roles-titulo { font-size: 22px; }
+  .panel-roles-lead { font-size: 14px; margin-bottom: 22px; }
+  .rol-panel-icono { width: 72px; height: 72px; }
+  .btn-entrar-rol { max-width: none; min-height: 48px; font-size: 16px; }
 }
 .panel-roles-cuerpo {
   max-width: 980px; margin: 0 auto;
@@ -235,8 +269,8 @@ input, select, textarea { font: inherit; color: inherit; }
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: stretch;
 }
 @media (max-width: 860px) {
-  .panel-roles-rejilla { grid-template-columns: 1fr; max-width: 380px; margin: 0 auto; }
-  .panel-roles-cuerpo { padding: 28px 16px 40px; }
+  .panel-roles-rejilla { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; gap: 14px; }
+  .panel-roles-cuerpo { padding: 24px 14px calc(40px + env(safe-area-inset-bottom, 0px)); }
 }
 .panel-rol-card {
   background: #fff; border: 1px solid var(--linea); border-radius: 10px;

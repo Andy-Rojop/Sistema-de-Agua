@@ -86,6 +86,52 @@ function Campo({ id, etiqueta, tipo = 'text', valor, alCambiar, autoComplete, pl
   );
 }
 
+function IconoOjo({ abierto }) {
+  if (abierto) {
+    return (
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+        <path fill="currentColor" d="M12 5c-5 0-9.3 3.1-11 7 1.7 3.9 6 7 11 7s9.3-3.1 11-7c-1.7-3.9-6-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-2.5A2.5 2.5 0 1 0 12 9a2.5 2.5 0 0 0 0 5z" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <path fill="currentColor" d="M3.3 2.3 2 3.6l3.1 3.1C3.2 8 1.7 9.7 1 12c1.7 3.9 6 7 11 7 1.7 0 3.3-.3 4.8-.9l3.6 3.6 1.3-1.3L3.3 2.3zM12 17c-3.9 0-7.2-2.3-8.7-5 .7-1.3 1.8-2.5 3.1-3.3l1.7 1.7A4.9 4.9 0 0 0 7 12a5 5 0 0 0 5 5c.7 0 1.3-.1 1.9-.4l1.6 1.6c-1.1.5-2.3.8-3.5.8zm9.7-1.3-1.5-1.5c1-.9 1.8-2 2.2-3.2-1.7-3.9-6-7-11-7-1.1 0-2.1.1-3.1.4L6.6 2.7C8.2 2.2 10 2 12 2c5 0 9.3 3.1 11 7-.6 1.4-1.6 2.7-2.9 3.7l1.6 1.6zM9.1 8.4l1.6 1.6c.4-.2.8-.3 1.3-.3a2.5 2.5 0 0 1 2.5 2.5c0 .5-.1.9-.3 1.3l1.6 1.6c.7-.8 1.2-1.8 1.2-2.9A5 5 0 0 0 12 7c-1.1 0-2.1.4-2.9 1.1z" />
+    </svg>
+  );
+}
+
+function CampoContrasena({
+  id, etiqueta, valor, alCambiar, autoComplete, placeholder, required = true,
+}) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <>
+      <label htmlFor={id}>{etiqueta}</label>
+      <div className="campo-clave">
+        <input
+          id={id}
+          type={visible ? 'text' : 'password'}
+          autoComplete={autoComplete}
+          required={required}
+          placeholder={placeholder}
+          value={valor}
+          onChange={(e) => alCambiar(e.target.value)}
+        />
+        <button
+          type="button"
+          className="campo-clave-ojo"
+          onClick={() => setVisible((v) => !v)}
+          aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+          aria-pressed={visible}
+        >
+          <IconoOjo abierto={visible} />
+        </button>
+      </div>
+    </>
+  );
+}
+
 function Enlaces({ vista, ir }) {
   return (
     <div className="ingreso-enlaces">
@@ -198,7 +244,7 @@ function Login({ alEntrar, ir, rolSeleccionado }) {
         autoComplete="username" placeholder="nombre@correo.com"
         valor={correo} alCambiar={setCorreo} />
 
-      <Campo id="login-clave" etiqueta="Contraseña" tipo="password"
+      <CampoContrasena id="login-clave" etiqueta="Contraseña"
         autoComplete="current-password" placeholder="••••••••••"
         valor={contrasena} alCambiar={setContrasena} />
 
@@ -281,11 +327,11 @@ function Registro({ ir }) {
         autoComplete="one-time-code" placeholder="Lo entrega el administrador"
         valor={invitacion} alCambiar={setInvitacion} required={false} />
 
-      <Campo id="reg-clave" etiqueta="Contraseña" tipo="password"
+      <CampoContrasena id="reg-clave" etiqueta="Contraseña"
         autoComplete="new-password" placeholder="Mínimo 10 caracteres, letras y números"
         valor={contrasena} alCambiar={setContrasena} />
 
-      <Campo id="reg-confirm" etiqueta="Confirmar contraseña" tipo="password"
+      <CampoContrasena id="reg-confirm" etiqueta="Confirmar contraseña"
         autoComplete="new-password" placeholder="Repita la contraseña"
         valor={confirmacion} alCambiar={setConfirmacion} />
 
@@ -393,11 +439,11 @@ function Restablecer({ ir, codigoInicial }) {
         autoComplete="one-time-code" placeholder="Código"
         valor={codigo} alCambiar={setCodigo} />
 
-      <Campo id="rst-nueva" etiqueta="Nueva contraseña" tipo="password"
+      <CampoContrasena id="rst-nueva" etiqueta="Nueva contraseña"
         autoComplete="new-password" placeholder="Mínimo 10 caracteres, letras y números"
         valor={nueva} alCambiar={setNueva} />
 
-      <Campo id="rst-confirm" etiqueta="Confirmar contraseña" tipo="password"
+      <CampoContrasena id="rst-confirm" etiqueta="Confirmar contraseña"
         autoComplete="new-password" placeholder="Repita la contraseña"
         valor={confirmacion} alCambiar={setConfirmacion} />
 
