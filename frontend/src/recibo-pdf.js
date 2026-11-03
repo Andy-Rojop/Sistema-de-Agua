@@ -60,8 +60,7 @@ function dibujarRecibo(doc, r) {
   const junta = r.junta || {};
 
   // ------------------------------------------------------------ encabezado --
-  centrar(junta.junta_nombre || 'Comité de Agua', 9, true);
-  centrar(junta.junta_direccion || 'Parcelamiento Santa Fe, Retalhuleu', 7);
+  centrar(junta.junta_nombre || 'Comité de Agua Potable, Parcelamiento Santa Fé', 9, true);
   if (junta.junta_telefono) centrar('Tel. ' + junta.junta_telefono, 7);
   y += 1;
   centrar('RECIBO N.\u00BA ' + r.correlativo, 10, true);

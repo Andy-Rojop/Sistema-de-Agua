@@ -123,12 +123,12 @@ export function componerEscPos(r) {
   const junta = r.junta || {};
 
   // 58 mm: sin doble ancho en el encabezado (con 0x11 solo caben ~16 caracteres).
+  const titulo = junta.junta_nombre
+    || 'Comité de Agua Potable, Parcelamiento Santa Fé';
   doc.align('center').bold(true).size(0);
-  lineasCentradas(doc, junta.junta_nombre || 'Comite de Agua', ANCHO);
+  lineasCentradas(doc, titulo, ANCHO);
   doc.bold(false);
-  if (junta.junta_direccion) lineasCentradas(doc, junta.junta_direccion, ANCHO);
   if (junta.junta_telefono) lineasCentradas(doc, 'Tel. ' + junta.junta_telefono, ANCHO);
-  lineasCentradas(doc, 'Agua potable - Santa Fe', ANCHO);
   doc.sep();
 
   doc.bold(true).size(0x11);

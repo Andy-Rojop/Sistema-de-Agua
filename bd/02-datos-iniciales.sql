@@ -28,8 +28,8 @@ INSERT INTO parametros (clave, valor, descripcion) VALUES
   ('umbral_consumo_excesivo',   '200',  'Porcentaje sobre el promedio para marcar posible fuga'),
   ('periodos_cero_alerta',      '3',    'Periodos consecutivos en cero antes de alertar'),
   ('minutos_expiracion_sesion', '30',   'Cierre de sesión por inactividad'),
-  ('junta_nombre',              'Comité de Agua', 'Encabezado del recibo'),
-  ('junta_direccion',           'Parcelamiento Santa Fe, Retalhuleu',            'Encabezado del recibo'),
+  ('junta_nombre',              'Comité de Agua Potable, Parcelamiento Santa Fé', 'Título del recibo'),
+  ('junta_direccion',           'Retalhuleu',                                    'Referencia geográfica (opcional)'),
   ('junta_telefono',            '',                                              'Encabezado del recibo');
 
 COMMIT;

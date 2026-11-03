@@ -126,6 +126,34 @@ input, select, textarea { font: inherit; color: inherit; }
   margin-bottom: 14px; text-decoration: underline; text-underline-offset: 3px;
 }
 .ingreso-volver:hover { color: var(--agua-vivo); }
+.ingreso-login {
+  position: relative;
+  overflow: hidden;
+  padding-top: 28px;
+}
+.ingreso-login::before {
+  content: "";
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 5px; background: var(--agua);
+}
+.ingreso-login-cabeza {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 22px; text-align: left;
+}
+.ingreso-login-cabeza .escudo-bloque { flex-shrink: 0; }
+.ingreso-login-cabeza h2 { margin-bottom: 8px; }
+.ingreso-login-eyebrow {
+  font-size: 11.5px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--agua); margin-bottom: 4px;
+}
+.ingreso-rol-pill {
+  display: inline-block;
+  padding: 4px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 700;
+  color: var(--petroleo); background: var(--agua-claro);
+  border: 1px solid #C5D8E3;
+}
+.ingreso-campos { margin-bottom: 4px; }
 
 /* ======================== PANEL DE ROLES (ACCESO) ======================= */
 .panel-roles {
@@ -252,6 +280,8 @@ input, select, textarea { font: inherit; color: inherit; }
   .panel-roles-lead { font-size: 14px; margin-bottom: 22px; }
   .rol-panel-icono { width: 72px; height: 72px; }
   .btn-entrar-rol { max-width: none; min-height: 48px; font-size: 16px; }
+  .ingreso-login-cabeza { flex-direction: column; text-align: center; }
+  .ingreso-login-cabeza > div { display: flex; flex-direction: column; align-items: center; }
 }
 .panel-roles-cuerpo {
   max-width: 980px; margin: 0 auto;
@@ -273,27 +303,75 @@ input, select, textarea { font: inherit; color: inherit; }
   .panel-roles-cuerpo { padding: 24px 14px calc(40px + env(safe-area-inset-bottom, 0px)); }
 }
 .panel-rol-card {
-  background: #fff; border: 1px solid var(--linea); border-radius: 10px;
-  padding: 26px 20px 22px;
+  background: #fff; border: 1px solid var(--linea); border-radius: 12px;
+  padding: 28px 20px 22px;
   display: flex; flex-direction: column; align-items: center; text-align: center;
-  box-shadow: var(--sombra);
+  box-shadow: var(--sombra); gap: 10px; width: 100%;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
 }
-.panel-rol-card:hover { border-color: #A8C4D4; }
-.rol-panel-icono { width: 88px; height: 88px; margin-bottom: 12px; }
+.panel-rol-card:hover {
+  border-color: var(--agua);
+  box-shadow: 0 6px 18px rgba(30, 42, 58, .12);
+  transform: translateY(-2px);
+}
+.panel-rol-card:focus-visible {
+  outline: 2px solid var(--agua); outline-offset: 3px;
+}
+.rol-panel-icono { width: 88px; height: 88px; margin-bottom: 4px; }
 .panel-rol-card h2 {
-  font-family: var(--display); font-size: 15px; font-weight: 700;
-  letter-spacing: .04em; color: var(--petroleo); margin-bottom: 8px;
-}
-.panel-rol-card p {
-  font-size: 13.5px; color: var(--tinta-media); line-height: 1.45;
-  flex: 1; margin-bottom: 16px;
+  font-family: var(--display); font-size: 17px; font-weight: 700;
+  letter-spacing: -.01em; color: var(--petroleo); margin: 0;
 }
 .btn-entrar-rol {
-  width: 100%; max-width: 180px; padding: 9px 16px; border-radius: 6px;
+  display: inline-block; width: 100%; max-width: 180px; margin-top: 8px;
+  padding: 10px 16px; border-radius: 6px;
   font-size: 14px; font-weight: 700; color: #fff;
   background: var(--agua); border: 1px solid var(--agua-vivo);
 }
-.btn-entrar-rol:hover { background: var(--agua-vivo); }
+.panel-rol-card:hover .btn-entrar-rol { background: var(--agua-vivo); }
+
+/* ======================== AVISO DE SESIÓN INACTIVA ====================== */
+.sesion-velo {
+  position: fixed; inset: 0; z-index: 80;
+  background: rgba(30, 42, 58, .55);
+  display: grid; place-items: center;
+  padding: 20px;
+}
+.sesion-aviso {
+  width: min(100%, 400px);
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid var(--linea);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .25);
+  padding: 26px 24px 22px;
+  text-align: center;
+}
+.sesion-aviso-eyebrow {
+  font-size: 11.5px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ambar); margin-bottom: 8px;
+}
+.sesion-aviso h2 {
+  font-family: var(--display);
+  font-size: 22px; font-weight: 700; color: var(--petroleo);
+  margin-bottom: 10px; line-height: 1.25;
+}
+.sesion-aviso-texto {
+  font-size: 14px; color: var(--tinta-media); margin-bottom: 18px; line-height: 1.5;
+}
+.sesion-aviso-cuenta {
+  margin-bottom: 20px; color: var(--tinta-media); font-size: 14px;
+}
+.sesion-aviso-numero {
+  display: inline-block;
+  min-width: 1.6em;
+  font-size: 36px; font-weight: 800; letter-spacing: -.03em;
+  color: var(--petroleo); font-family: var(--mono); line-height: 1;
+  vertical-align: middle; margin-right: 4px;
+}
+.sesion-aviso-acciones {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.sesion-aviso-acciones .btn-grande { min-height: 48px; }
 
 /* ================================= ARMAZÓN ============================== */
 .app {

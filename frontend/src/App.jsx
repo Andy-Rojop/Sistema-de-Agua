@@ -9,10 +9,11 @@
  * usuario botones que de todas formas le serían rechazados.
  */
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { usuarioActual, cerrarSesion } from './api';
 import { vistasPara } from './permisos';
 import { Brindis } from './componentes/Comunes';
+import { AvisoSesion } from './componentes/AvisoSesion';
 import Acceso from './paginas/Acceso';
 import Lecturas from './paginas/Lecturas';
 import Cobro from './paginas/Cobro';
@@ -27,6 +28,12 @@ export default function App() {
   const [brindis, setBrindis] = useState({ mensaje: null, error: false });
 
   const avisar = (mensaje, error = false) => setBrindis({ mensaje, error });
+
+  const salir = useCallback(function () {
+    cerrarSesion();
+    setUsuario(null);
+    setVista(null);
+  }, []);
 
   if (!usuario) {
     return (
@@ -44,12 +51,6 @@ export default function App() {
   // Guardia de vista (estilo GraduaT): si el rol no puede ver la pantalla actual, se corrige.
   const permitida = disponibles.some((v) => v.id === vista);
   const actual = (vista && permitida) ? vista : disponibles[0]?.id;
-
-  function salir() {
-    cerrarSesion();
-    setUsuario(null);
-    setVista(null);
-  }
 
   function ir(id) {
     if (!disponibles.some((v) => v.id === id)) return;
@@ -89,9 +90,9 @@ export default function App() {
         <div className="encabezado-app-inner">
           <Escudo tam={56} compacto />
           <div className="encabezado-titular">
-            <p className="encabezado-titular-nombre">Comité de Agua</p>
+            <p className="encabezado-titular-nombre">Comité de Agua Potable, Parcelamiento Santa Fé</p>
             <p className="encabezado-titular-lema">
-              Parcelamiento Santa Fe, Retalhuleu
+              Retalhuleu
             </p>
           </div>
         </div>
@@ -116,6 +117,8 @@ export default function App() {
       <main>
         <div className="contenedor">{contenido}</div>
       </main>
+
+      <AvisoSesion alCerrarSesion={salir} />
 
       <Brindis
         mensaje={brindis.mensaje}

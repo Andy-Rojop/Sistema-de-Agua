@@ -14,9 +14,9 @@ function EncabezadoSitio({ extra }) {
         <div className="encabezado-sitio-marca">
           <Escudo tam={72} compacto />
           <div className="encabezado-titular">
-            <p className="encabezado-titular-nombre">Comité de Agua</p>
+            <p className="encabezado-titular-nombre">Comité de Agua Potable, Parcelamiento Santa Fé</p>
             <p className="encabezado-titular-lema">
-              Sistema de gestión del servicio · Parcelamiento Santa Fe, Retalhuleu
+              Sistema de gestión del servicio · Retalhuleu
             </p>
           </div>
         </div>
@@ -170,27 +170,23 @@ function PanelRoles({ alElegir, ir }) {
 
       <main className="panel-roles-cuerpo">
         <h1 className="panel-roles-titulo">Seleccione su rol</h1>
-        <p className="panel-roles-lead">
-          Elija cómo ingresará. Después usará su correo y contraseña.
-        </p>
+        <p className="panel-roles-lead">Luego ingrese con su correo y contraseña.</p>
 
         <div className="panel-roles-rejilla">
           {ROLES.map((clave) => {
             const info = ROLES_INFO[clave];
             const Icono = ICONOS_ROL[clave];
             return (
-              <article key={clave} className="panel-rol-card">
+              <button
+                key={clave}
+                type="button"
+                className="panel-rol-card"
+                onClick={() => alElegir(clave)}
+              >
                 <Icono />
-                <h2>{info.nombre.toUpperCase()}</h2>
-                <p>{info.descripcion}</p>
-                <button
-                  type="button"
-                  className="btn-entrar-rol"
-                  onClick={() => alElegir(clave)}
-                >
-                  Entrar
-                </button>
-              </article>
+                <h2>{info.nombre}</h2>
+                <span className="btn-entrar-rol">Entrar</span>
+              </button>
             );
           })}
         </div>
@@ -229,24 +225,31 @@ function Login({ alEntrar, ir, rolSeleccionado }) {
   }
 
   return (
-    <form className="ingreso-tarjeta" onSubmit={enviar}>
+    <form className="ingreso-tarjeta ingreso-login" onSubmit={enviar}>
       <button type="button" className="ingreso-volver" onClick={() => ir('roles')}>
         ← Volver a roles
       </button>
-      <h2>Iniciar sesión</h2>
-      <p className="ingreso-lead">
-        {rolSeleccionado
-          ? 'Acceso como ' + etiquetaRol(rolSeleccionado) + '. Use su correo y contraseña.'
-          : 'Acceda con su correo institucional.'}
-      </p>
 
-      <Campo id="login-correo" etiqueta="Correo electrónico" tipo="email"
-        autoComplete="username" placeholder="nombre@correo.com"
-        valor={correo} alCambiar={setCorreo} />
+      <div className="ingreso-login-cabeza">
+        <Escudo tam={64} compacto />
+        <div>
+          <p className="ingreso-login-eyebrow">Acceso al sistema</p>
+          <h2>Iniciar sesión</h2>
+          {rolSeleccionado ? (
+            <span className="ingreso-rol-pill">{etiquetaRol(rolSeleccionado)}</span>
+          ) : null}
+        </div>
+      </div>
 
-      <CampoContrasena id="login-clave" etiqueta="Contraseña"
-        autoComplete="current-password" placeholder="••••••••••"
-        valor={contrasena} alCambiar={setContrasena} />
+      <div className="ingreso-campos">
+        <Campo id="login-correo" etiqueta="Correo electrónico" tipo="email"
+          autoComplete="username" placeholder="nombre@correo.com"
+          valor={correo} alCambiar={setCorreo} />
+
+        <CampoContrasena id="login-clave" etiqueta="Contraseña"
+          autoComplete="current-password" placeholder="••••••••••"
+          valor={contrasena} alCambiar={setContrasena} />
+      </div>
 
       {error && <p className="ingreso-error">{error}</p>}
 
