@@ -435,46 +435,107 @@ main { flex: 1; padding: 22px 24px 48px; overflow-x: hidden; background: transpa
 .contenedor { max-width: 960px; margin: 0 auto; }
 
 .panel-bienvenida {
-  background: var(--petroleo);
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 90% 70% at 100% -10%, rgba(27,107,147,.55), transparent 55%),
+    radial-gradient(ellipse 60% 50% at 0% 100%, rgba(21,90,124,.35), transparent 50%),
+    var(--petroleo);
   color: #fff;
-  border-radius: 16px;
-  padding: 22px 20px 18px;
+  border-radius: 20px;
+  padding: 22px 18px 16px;
   margin-bottom: 18px;
-  box-shadow: var(--sombra);
+  box-shadow: 0 10px 28px rgba(30, 42, 58, .28);
 }
+.panel-bienvenida-topo { margin-bottom: 16px; }
 .panel-bienvenida .eyebrow { color: #9AADC0; margin-bottom: 8px; }
 .panel-bienvenida h2 {
   font-family: var(--display);
-  font-size: clamp(26px, 4vw, 34px);
-  font-weight: 750; letter-spacing: -.03em;
-  color: #fff; margin-bottom: 8px; line-height: 1.15;
+  font-size: clamp(28px, 5vw, 36px);
+  font-weight: 800; letter-spacing: -.04em;
+  color: #fff; margin-bottom: 8px; line-height: 1.1;
 }
-.panel-bienvenida > p {
-  font-size: 14.5px; color: #C5D2DC; line-height: 1.5; margin-bottom: 16px;
+.panel-bienvenida-topo > p {
+  font-size: 14px; color: #C5D2DC; line-height: 1.5; margin: 0;
+  max-width: 36rem;
 }
-.panel-opciones { display: flex; flex-direction: column; gap: 10px; }
-@media (min-width: 720px) {
-  .panel-opciones { display: grid; grid-template-columns: 1fr 1fr; }
+.panel-atajos {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px;
+  padding: 12px;
+  backdrop-filter: blur(8px);
+}
+.panel-atajos-titulo {
+  font-size: 12px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: #A8B8C8;
+  margin: 2px 4px 10px;
+}
+.panel-opciones {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+@media (min-width: 560px) {
+  .panel-opciones { grid-template-columns: 1fr 1fr; }
 }
 .opcion-card {
-  display: flex; align-items: center; gap: 14px;
+  display: flex; align-items: center; gap: 12px;
   width: 100%; text-align: left;
-  padding: 14px 16px; border-radius: 12px;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.12);
-  color: #fff;
+  padding: 12px 12px 12px 12px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid rgba(255,255,255,.7);
+  color: var(--tinta);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 32, .06),
+    0 8px 20px rgba(15, 23, 32, .12);
+  transition: transform .16s ease, box-shadow .16s ease;
 }
-.opcion-card:hover { background: rgba(255,255,255,.14); }
+.opcion-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 2px 4px rgba(15, 23, 32, .08),
+    0 14px 28px rgba(15, 23, 32, .16);
+}
+.opcion-card:active {
+  transform: translateY(0) scale(.98);
+}
 .opcion-icono {
   flex: 0 0 auto;
-  width: 42px; height: 42px; border-radius: 10px;
+  width: 52px; height: 52px; border-radius: 50%;
   display: grid; place-items: center;
-  background: rgba(255,255,255,.12);
-  color: #E7F1F6;
+  background: var(--agua-claro);
+  color: var(--agua);
+  box-shadow: inset 0 0 0 1px rgba(27,107,147,.08);
 }
-.opcion-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.opcion-texto strong { font-size: 15.5px; font-weight: 700; }
-.opcion-texto span { font-size: 13px; color: #B8C4D0; }
+.opcion-cobro .opcion-icono { background: #E5F6EE; color: #1B7A4A; }
+.opcion-padron .opcion-icono { background: #E7F1F6; color: #1B6B93; }
+.opcion-lecturas .opcion-icono { background: #EAF0FF; color: #3558B0; }
+.opcion-reportes .opcion-icono { background: #F8F1DE; color: #9A6B10; }
+.opcion-cierre .opcion-icono { background: #F3EAF8; color: #6B3D8C; }
+.opcion-cuentas .opcion-icono { background: #E8F4F8; color: #155A7C; }
+.opcion-bitacora .opcion-icono { background: #EEF1F4; color: #4A5563; }
+.opcion-texto {
+  display: flex; flex-direction: column; gap: 2px;
+  min-width: 0; flex: 1; text-align: left;
+}
+.opcion-texto strong {
+  font-size: 16px; font-weight: 750; letter-spacing: -.02em;
+  color: var(--petroleo);
+}
+.opcion-texto span {
+  font-size: 12.5px; color: var(--tinta-media); line-height: 1.35;
+}
+.opcion-flecha {
+  flex: 0 0 auto;
+  color: #A0AAB4;
+  transition: transform .16s ease, color .16s ease;
+}
+.opcion-card:hover .opcion-flecha {
+  color: var(--agua);
+  transform: translateX(3px);
+}
 
 /* =============================== ENCABEZADOS =========================== */
 .eyebrow {
