@@ -129,7 +129,7 @@ export function Tablero({ usuario, opciones = [], alIr, avisar }) {
           <p className="eyebrow">Panel del {etiquetaRol(usuario?.rol)}</p>
           <h2>Hola, {saludo}</h2>
           <p>
-            {mesNombre} · {textoEstado}. Vencimiento de pago: {vencimiento}.
+            {mesNombre} · {textoEstado}. Vence el {vencimiento}.
           </p>
         </div>
 

@@ -169,8 +169,9 @@ function PanelRoles({ alElegir, ir }) {
       />
 
       <main className="panel-roles-cuerpo">
-        <h1 className="panel-roles-titulo">Seleccione su rol</h1>
-        <p className="panel-roles-lead">Luego ingrese con su correo y contraseña.</p>
+        <p className="panel-roles-kicker">Comité de Agua Potable</p>
+        <h1 className="panel-roles-titulo">¿Cómo ingresa hoy?</h1>
+        <p className="panel-roles-lead">Elija su rol y continúe con correo y contraseña.</p>
 
         <div className="panel-roles-rejilla">
           {ROLES.map((clave) => {
