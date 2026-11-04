@@ -7,22 +7,21 @@ import { api, guardarSesion } from '../api';
 import { ROLES, ROLES_INFO, etiquetaRol } from '../permisos';
 import { Escudo } from '../componentes/Escudo';
 
-function EncabezadoSitio({ extra }) {
+function MarcaInicio({ chico }) {
   return (
-    <header className="encabezado-sitio">
-      <div className="encabezado-sitio-inner">
-        <div className="encabezado-sitio-marca">
-          <Escudo tam={72} compacto />
-          <div className="encabezado-titular">
-            <p className="encabezado-titular-nombre">Comité de Agua Potable, Parcelamiento Santa Fé</p>
-            <p className="encabezado-titular-lema">
-              Sistema de gestión del servicio · Retalhuleu
-            </p>
-          </div>
-        </div>
-        {extra ? <div className="encabezado-sitio-acciones">{extra}</div> : null}
-      </div>
-    </header>
+    <div className={'inicio-marca' + (chico ? ' chica' : '')}>
+      <Escudo tam={chico ? 56 : 72} compacto />
+      <h1 className="inicio-marca-titulo">Agua potable Santa Fe</h1>
+      <p className="inicio-marca-lugar">Retalhuleu</p>
+    </div>
+  );
+}
+
+function IconoChevron() {
+  return (
+    <svg className="inicio-rol-flecha" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
@@ -159,21 +158,15 @@ function Enlaces({ vista, ir }) {
 
 function PanelRoles({ alElegir, ir }) {
   return (
-    <div className="panel-roles">
-      <EncabezadoSitio
-        extra={
-          <button type="button" className="encabezado-sitio-btn" onClick={() => ir('registro')}>
-            Crear cuenta
-          </button>
-        }
-      />
+    <div className="inicio-fb">
+      <div className="inicio-fb-centro">
+        <MarcaInicio />
+        <hr className="inicio-fb-linea" />
+        <p className="inicio-fb-aviso">
+          Elija su rol para continuar. El acceso queda en este dispositivo.
+        </p>
 
-      <main className="panel-roles-cuerpo">
-        <p className="panel-roles-kicker">Comité de Agua Potable</p>
-        <h1 className="panel-roles-titulo">¿Cómo ingresa hoy?</h1>
-        <p className="panel-roles-lead">Elija su rol y continúe con correo y contraseña.</p>
-
-        <div className="panel-roles-rejilla">
+        <div className="inicio-roles" role="list">
           {ROLES.map((clave) => {
             const info = ROLES_INFO[clave];
             const Icono = ICONOS_ROL[clave];
@@ -181,17 +174,29 @@ function PanelRoles({ alElegir, ir }) {
               <button
                 key={clave}
                 type="button"
-                className="panel-rol-card"
+                className="inicio-rol"
+                role="listitem"
                 onClick={() => alElegir(clave)}
               >
-                <Icono />
-                <h2>{info.nombre}</h2>
-                <span className="btn-entrar-rol">Entrar</span>
+                <span className="inicio-rol-avatar">
+                  <Icono />
+                </span>
+                <span className="inicio-rol-nombre">{info.nombre}</span>
+                <IconoChevron />
               </button>
             );
           })}
         </div>
-      </main>
+
+        <div className="inicio-fb-acciones">
+          <button type="button" className="inicio-btn-secundario" onClick={() => ir('recuperar')}>
+            Restablecer contraseña
+          </button>
+          <button type="button" className="inicio-btn-contorno" onClick={() => ir('registro')}>
+            Crear cuenta
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -226,21 +231,16 @@ function Login({ alEntrar, ir, rolSeleccionado }) {
   }
 
   return (
-    <form className="ingreso-tarjeta ingreso-login" onSubmit={enviar}>
+    <form className="ingreso-tarjeta ingreso-login inicio-form" onSubmit={enviar}>
       <button type="button" className="ingreso-volver" onClick={() => ir('roles')}>
-        ← Volver a roles
+        ← Volver
       </button>
 
-      <div className="ingreso-login-cabeza">
-        <Escudo tam={64} compacto />
-        <div>
-          <p className="ingreso-login-eyebrow">Acceso al sistema</p>
-          <h2>Iniciar sesión</h2>
-          {rolSeleccionado ? (
-            <span className="ingreso-rol-pill">{etiquetaRol(rolSeleccionado)}</span>
-          ) : null}
-        </div>
-      </div>
+      <MarcaInicio chico />
+      <h2>Iniciar sesión</h2>
+      {rolSeleccionado ? (
+        <span className="ingreso-rol-pill">{etiquetaRol(rolSeleccionado)}</span>
+      ) : null}
 
       <div className="ingreso-campos">
         <Campo id="login-correo" etiqueta="Correo electrónico" tipo="email"
@@ -490,14 +490,7 @@ export default function Acceso({ alEntrar }) {
   else formulario = <Login alEntrar={alEntrar} ir={ir} rolSeleccionado={rolSeleccionado} />;
 
   return (
-    <div className="ingreso">
-      <EncabezadoSitio
-        extra={
-          <button type="button" className="encabezado-sitio-btn claro" onClick={() => ir('roles')}>
-            Cambiar rol
-          </button>
-        }
-      />
+    <div className="inicio-fb ingreso">
       <div className="ingreso-marco">
         {formulario}
       </div>

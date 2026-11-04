@@ -171,14 +171,174 @@ input, select, textarea { font: inherit; color: inherit; }
 }
 .ingreso-campos { margin-bottom: 4px; }
 
-/* ======================== PANEL DE ROLES (ACCESO) ======================= */
+/* ======================== INICIO ESTILO FACEBOOK ======================== */
+.inicio-fb {
+  min-height: 100dvh;
+  background: #12151A;
+  color: #F2F4F7;
+  display: flex;
+  flex-direction: column;
+}
+.inicio-fb-centro {
+  width: min(100%, 420px);
+  margin: auto;
+  padding: 36px 20px calc(28px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.inicio-marca {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 8px;
+}
+.inicio-marca .escudo-bloque { margin-bottom: 14px; }
+.inicio-marca-titulo {
+  font-family: var(--texto);
+  font-size: 26px;
+  font-weight: 750;
+  letter-spacing: -.03em;
+  color: #fff;
+  line-height: 1.15;
+  margin: 0;
+}
+.inicio-marca-lugar {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #9AA3AE;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.inicio-marca.chica { margin-bottom: 18px; }
+.inicio-marca.chica .inicio-marca-titulo { font-size: 20px; }
+.inicio-fb-linea {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid #2A3038;
+  margin: 22px 0 16px;
+}
+.inicio-fb-aviso {
+  font-size: 13px;
+  line-height: 1.45;
+  color: #C5CCD4;
+  text-align: center;
+  margin: 0 0 18px;
+}
+.inicio-roles {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.inicio-rol {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid #3A414B;
+  background: #1A1F26;
+  color: #fff;
+  transition: background .15s ease, border-color .15s ease, transform .12s ease;
+}
+.inicio-rol:hover,
+.inicio-rol:focus-visible {
+  background: #222831;
+  border-color: #4A5563;
+}
+.inicio-rol:active { transform: scale(.985); }
+.inicio-rol-avatar {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #E7F1F6;
+}
+.inicio-rol-avatar .rol-panel-icono {
+  width: 52px;
+  height: 52px;
+  margin: 0;
+}
+.inicio-rol-nombre {
+  flex: 1;
+  min-width: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+.inicio-rol-flecha { color: #8A93A0; flex-shrink: 0; }
+.inicio-fb-acciones {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.inicio-btn-secundario,
+.inicio-btn-contorno {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.inicio-btn-secundario {
+  background: #2A3038;
+  color: #fff;
+  border: 1px solid #2A3038;
+}
+.inicio-btn-secundario:hover { background: #343B45; }
+.inicio-btn-contorno {
+  background: transparent;
+  color: #4EA3D4;
+  border: 1.5px solid #4EA3D4;
+}
+.inicio-btn-contorno:hover { background: rgba(78,163,212,.08); }
+
+.inicio-fb.ingreso .ingreso-marco { margin: auto; }
+.inicio-fb .ingreso-tarjeta {
+  background: #1A1F26;
+  border: 1px solid #2A3038;
+  color: #F2F4F7;
+  box-shadow: none;
+}
+.inicio-fb .ingreso h2 { color: #fff; text-align: center; }
+.inicio-fb .ingreso-lead,
+.inicio-fb .ingreso label { color: #9AA3AE; }
+.inicio-fb .ingreso input {
+  background: #12151A;
+  border-color: #3A414B;
+  color: #fff;
+}
+.inicio-fb .ingreso input:focus {
+  border-color: #4EA3D4;
+  box-shadow: 0 0 0 3px rgba(78,163,212,.2);
+}
+.inicio-fb .ingreso-volver,
+.inicio-fb .ingreso-enlace { color: #4EA3D4; }
+.inicio-fb .ingreso-rol-pill {
+  display: inline-flex;
+  margin: 0 auto 14px;
+  background: #24303A;
+  border-color: #3A4A56;
+  color: #B8D4E6;
+}
+.inicio-fb .ingreso-login-cabeza,
+.inicio-fb .inicio-form { text-align: center; }
+.inicio-fb .inicio-form .ingreso-campos { text-align: left; }
+.inicio-fb .campo-clave-ojo { color: #9AA3AE; }
+.inicio-fb .ingreso-enlaces { border-top-color: #2A3038; }
+
 .panel-roles {
   min-height: 100dvh;
-  background:
-    radial-gradient(ellipse 80% 45% at 0% 0%, rgba(27,107,147,.18), transparent 50%),
-    radial-gradient(ellipse 60% 40% at 100% 20%, rgba(126,184,214,.22), transparent 45%),
-    linear-gradient(180deg, #EAF1F6 0%, #D0DCE6 100%);
-  color: var(--tinta);
+  background: #12151A;
+  color: #F2F4F7;
 }
 .encabezado-sitio {
   background: var(--petroleo);
@@ -238,6 +398,8 @@ input, select, textarea { font: inherit; color: inherit; }
   letter-spacing: .02em;
   color: #A8B8C8;
 }
+.inicio-fb .escudo-autor,
+.inicio-fb .escudo-autor span { color: #8A93A0; }
 .encabezado-sitio-marca {
   display: flex; align-items: center; gap: 18px; text-align: left;
 }
