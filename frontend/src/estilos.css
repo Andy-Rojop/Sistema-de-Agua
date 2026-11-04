@@ -920,6 +920,7 @@ h2.titulo {
 }
 .revision-meta { font-size: 13px; color: var(--tinta-media); margin: 0 0 12px; line-height: 1.4; }
 .revision-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.revision-card-suave { opacity: .92; background: rgba(255,255,255,.82); }
 .tablero-bloque { min-height: 220px; border-radius: 18px; }
 .tablero-cifra {
   font-family: var(--display);

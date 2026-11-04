@@ -103,7 +103,8 @@ function etiquetaInconsistencia(tipo) {
 export function Tablero({ usuario, alIr, avisar }) {
   const { datos, cargando, error, recargar } = useCarga(() => api.tablero());
   const revision = useCarga(() => api.lecturasInconsistentes(), []);
-  const [verRevision, setVerRevision] = useState(false);
+  const avanceLecturas = useCarga(() => api.pendientesDeLectura(), []);
+  const [detalle, setDetalle] = useState(null); // 'revision' | 'lecturas' | null
   const puedeAbrir = Boolean(usuario && puede(usuario.rol, 'abrir_periodo'));
   const puedeResolver = Boolean(usuario && puede(usuario.rol, 'inconsistencias'));
   const puedeCobro = Boolean(usuario && puede(usuario.rol, 'cobro'));
@@ -136,6 +137,11 @@ export function Tablero({ usuario, alIr, avisar }) {
   const mesNombre = (MESES_LARGOS[datos.periodo.mes - 1] || datos.periodo.mes) + ' ' + datos.periodo.anio;
   const vencimiento = new Date(datos.periodo.fecha_vencimiento).toLocaleDateString('es-GT');
   const listaRevision = Array.isArray(revision.datos) ? revision.datos : [];
+  const conexionesAvance = Array.isArray(avanceLecturas.datos?.conexiones)
+    ? avanceLecturas.datos.conexiones
+    : [];
+  const visitadas = conexionesAvance.filter(function (c) { return c.leida; });
+  const sinVisita = conexionesAvance.filter(function (c) { return !c.leida; });
 
   async function resolverRevision(id) {
     const nota = window.prompt(
@@ -153,16 +159,17 @@ export function Tablero({ usuario, alIr, avisar }) {
     }
   }
 
-  function abrirRevision() {
-    setVerRevision(true);
-    revision.recargar();
+  function abrirDetalle(cual) {
+    setDetalle(cual);
+    if (cual === 'revision') revision.recargar();
+    if (cual === 'lecturas') avanceLecturas.recargar();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  if (verRevision) {
+  if (detalle === 'revision') {
     return (
       <div className="tablero anim-entrar">
-        <button type="button" className="lectura-volver" onClick={() => setVerRevision(false)}>
+        <button type="button" className="lectura-volver" onClick={() => setDetalle(null)}>
           ← Volver al resumen
         </button>
         <p className="eyebrow">Periodo {mesNombre}</p>
@@ -171,7 +178,7 @@ export function Tablero({ usuario, alIr, avisar }) {
           Lecturas que impiden cerrar el periodo.
           {puedeResolver
             ? ' Puede resolverlas aquí.'
-            : ' Solo el administrador puede marcarlas como resueltas.'}
+            : ' Puede consultarlas; solo el administrador puede resolverlas.'}
         </p>
 
         {revision.cargando && <Cargando texto="Cargando revisiones…" />}
@@ -220,6 +227,78 @@ export function Tablero({ usuario, alIr, avisar }) {
     );
   }
 
+  if (detalle === 'lecturas') {
+    return (
+      <div className="tablero anim-entrar">
+        <button type="button" className="lectura-volver" onClick={() => setDetalle(null)}>
+          ← Volver al resumen
+        </button>
+        <p className="eyebrow">Periodo {mesNombre}</p>
+        <h2 className="titulo">Lecturas del periodo</h2>
+        <p className="subtitulo">
+          {visitadas.length} visitadas · {sinVisita.length} pendientes de toma.
+        </p>
+
+        {avanceLecturas.cargando && <Cargando texto="Cargando lecturas…" />}
+        {avanceLecturas.error && <Aviso tipo="rojo">{avanceLecturas.error}</Aviso>}
+
+        {!avanceLecturas.cargando && !avanceLecturas.error && (
+          <>
+            <div className="panel-titulo" style={{ marginTop: 8 }}>Ya se tomó lectura</div>
+            {visitadas.length === 0 ? (
+              <Vacio titulo="Aún no hay visitas">
+                Cuando el fontanero registre lecturas, aparecerán aquí.
+              </Vacio>
+            ) : (
+              <div className="revision-lista">
+                {visitadas.map((c) => (
+                  <article key={c.id} className="revision-card">
+                    <div className="revision-card-top">
+                      <span className="revision-codigo">{c.codigo}</span>
+                      <span className="etiqueta-est e-ok">Visitada</span>
+                    </div>
+                    <h3 className="revision-titular">{c.titular}</h3>
+                    <p className="revision-meta">
+                      {(c.sector || 'Sin sector')}
+                      {c.lectura_periodo != null
+                        ? ' · Lectura ' + metrosCubicos(c.lectura_periodo)
+                        : ''}
+                    </p>
+                    {puedeCobro && (
+                      <div className="revision-acciones">
+                        <button type="button" className="btn btn-borde btn-mini" onClick={() => alIr('cobro')}>
+                          Ir a cobro
+                        </button>
+                      </div>
+                    )}
+                  </article>
+                ))}
+              </div>
+            )}
+
+            {sinVisita.length > 0 && (
+              <>
+                <div className="panel-titulo" style={{ marginTop: 18 }}>Pendientes de visita</div>
+                <div className="revision-lista">
+                  {sinVisita.map((c) => (
+                    <article key={c.id} className="revision-card revision-card-suave">
+                      <div className="revision-card-top">
+                        <span className="revision-codigo">{c.codigo}</span>
+                        <span className="etiqueta-est e-pend">Pendiente</span>
+                      </div>
+                      <h3 className="revision-titular">{c.titular}</h3>
+                      <p className="revision-meta">{c.sector || 'Sin sector'}</p>
+                    </article>
+                  ))}
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="tablero anim-entrar">
       <section className="tablero-pulso">
@@ -260,14 +339,16 @@ export function Tablero({ usuario, alIr, avisar }) {
           etiqueta="Lecturas"
           valor={i.lecturas_tomadas + '/' + i.con_medidor}
           pie={avance + '% de medidores visitados'}
+          onClick={() => abrirDetalle('lecturas')}
+          accion="Ver usuarios →"
         />
         <Indicador
           etiqueta="Por revisar"
           valor={i.por_revisar}
           pie={i.por_revisar ? 'Toque para ver usuarios' : 'Sin pendientes'}
           alerta={i.por_revisar > 0}
-          onClick={abrirRevision}
-          accion={i.por_revisar > 0 ? 'Ver lista →' : 'Revisar'}
+          onClick={() => abrirDetalle('revision')}
+          accion={i.por_revisar > 0 ? 'Ver lista →' : 'Consultar'}
         />
         <Indicador
           etiqueta="Pendiente"

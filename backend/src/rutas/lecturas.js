@@ -100,7 +100,7 @@ router.get('/periodos/actual', autenticar, async function (req, res, next) {
 
 // RF-02.3 — Conexiones del periodo con marca de visita (lectura tomada o no).
 router.get('/periodos/actual/pendientes', autenticar,
-  exigirPermiso('lecturas'), async function (req, res, next) {
+  exigirPermiso('avance_lecturas'), async function (req, res, next) {
   try {
     const periodo = await periodoAbierto();
     if (!periodo) {

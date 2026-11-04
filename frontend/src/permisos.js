@@ -36,6 +36,7 @@ const PERMISOS = {
   alta_conexion: ['ADMINISTRADOR', 'TESORERO'],
   abrir_periodo: ['ADMINISTRADOR', 'TESORERO'],
   inconsistencias: ['ADMINISTRADOR'],
+  avance_lecturas: ['ADMINISTRADOR', 'TESORERO', 'FONTANERO'],
 };
 
 export const VISTAS = [

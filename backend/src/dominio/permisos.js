@@ -44,6 +44,8 @@ const PERMISOS = {
   cobro:              ['ADMINISTRADOR', 'TESORERO'],
   abrir_periodo:      ['ADMINISTRADOR', 'TESORERO'],
   inconsistencias:    ['ADMINISTRADOR'],
+  // Consulta de avance (quién ya tiene lectura). Tesorero ve; no registra.
+  avance_lecturas:    ['ADMINISTRADOR', 'TESORERO', 'FONTANERO'],
   // Admin y Tesorero cargan el padrón desde los cuadernos de la junta.
   alta_conexion:      ['ADMINISTRADOR', 'TESORERO'],
   usuarios:           ['ADMINISTRADOR'],
