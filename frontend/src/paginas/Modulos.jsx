@@ -431,6 +431,23 @@ function lugarPadron(c) {
   return [sector, direccion].filter(Boolean).join(' · ') || 'Sin dirección';
 }
 
+const ZONAS_SANTA_FE = [
+  'Calle principal',
+  'Segunda Calle',
+  'Tercera Calle',
+  'Colonia 23 de Febrero',
+  'El mercadito',
+];
+
+const CATEGORIAS_INSTITUCION = [
+  'Iglesia',
+  'Escuela',
+  'Instituto',
+  'Biblioteca',
+  'Salón comunal',
+  'Otra institución',
+];
+
 export function Padron({ usuario, avisar }) {
   const [busqueda, setBusqueda] = useState('');
   const [consulta, setConsulta] = useState('');
@@ -442,8 +459,10 @@ export function Padron({ usuario, avisar }) {
   const abierto = (datos || []).find((c) => c.id === abiertoId) || null;
 
   const vacio = {
+    tipoTitular: 'PARTICULAR',
+    categoriaInstitucion: 'Iglesia',
     nombreCompleto: '', dpi: '', telefono: '',
-    codigoConexion: '', sector: '', direccion: '',
+    zona: '', lote: '',
     modalidad: 'MEDIDA', serieMedidor: '', lecturaInicial: '0',
   };
   const [alta, setAlta] = useState(vacio);
@@ -469,33 +488,61 @@ export function Padron({ usuario, avisar }) {
     };
   }
 
+  function armarDireccionLote(lote) {
+    const n = String(lote || '').trim().replace(/^#/, '');
+    return n ? ('Lote #' + n) : '';
+  }
+
   async function registrar(e) {
     e.preventDefault();
-    const { nombres, apellidos } = partirNombre(alta.nombreCompleto);
-    if (!nombres || !apellidos) {
-      avisar('Indique el nombre completo del usuario.', true);
+    const esInstitucion = alta.tipoTitular === 'INSTITUCION';
+    let nombres;
+    let apellidos;
+    if (esInstitucion) {
+      nombres = String(alta.nombreCompleto || '').trim();
+      apellidos = alta.categoriaInstitucion || 'Institución';
+      if (!nombres) {
+        avisar('Indique el nombre de la institución.', true);
+        return;
+      }
+    } else {
+      const partido = partirNombre(alta.nombreCompleto);
+      nombres = partido.nombres;
+      apellidos = partido.apellidos;
+      if (!nombres || !apellidos) {
+        avisar('Indique el nombre completo del usuario.', true);
+        return;
+      }
+      if (!alta.dpi.trim()) {
+        avisar('El DPI es obligatorio para un particular.', true);
+        return;
+      }
+    }
+    if (!alta.telefono.trim()) {
+      avisar('El teléfono de contacto es obligatorio.', true);
       return;
     }
-    if (!alta.dpi.trim() || !alta.telefono.trim() || !alta.codigoConexion.trim()) {
-      avisar('Código, DPI y teléfono son obligatorios.', true);
+    if (!alta.zona) {
+      avisar('Seleccione la zona o calle.', true);
       return;
     }
 
     setGuardando(true);
     try {
       const creado = await api.crearConexion({
+        tipoTitular: alta.tipoTitular,
+        categoriaInstitucion: esInstitucion ? alta.categoriaInstitucion : undefined,
         nombres,
         apellidos,
-        dpi: alta.dpi.trim(),
+        dpi: alta.dpi.trim() || undefined,
         telefono: alta.telefono.trim(),
-        direccion: alta.direccion.trim() || undefined,
-        codigoConexion: alta.codigoConexion.trim(),
-        sector: alta.sector.trim() || undefined,
+        direccion: armarDireccionLote(alta.lote) || undefined,
+        sector: alta.zona,
         modalidad: alta.modalidad,
         serieMedidor: alta.serieMedidor.trim() || undefined,
         lecturaInicial: aLitrosDesdeMetros(alta.lecturaInicial) || 0,
       });
-      avisar('Usuario registrado en el padrón: ' + creado.codigo + ' · ' + alta.nombreCompleto.trim());
+      avisar('Padrón registrado: ' + creado.codigo + ' · ' + alta.nombreCompleto.trim());
       setAlta(vacio);
       setMostrarAlta(false);
       recargar();
@@ -717,51 +764,83 @@ export function Padron({ usuario, avisar }) {
         <div className="panel">
           <div className="panel-titulo">Nuevo padrón</div>
           <p className="mini" style={{ margin: '-6px 0 14px' }}>
-            Registre al titular y su conexión: nombre, DPI, teléfono y código.
+            El código se asigna solo (SF-001, SF-002…). Indique lote y zona.
           </p>
           <form onSubmit={registrar}>
             <div className="padron-alta">
-              <label className="etiqueta" style={{ gridColumn: '1 / -1' }}>
-                Nombre completo *
-                <input className="campo" required
-                  placeholder="Como aparece en el cuaderno"
-                  value={alta.nombreCompleto}
-                  onChange={(e) => setAlta({ ...alta, nombreCompleto: e.target.value })} />
-              </label>
               <label className="etiqueta">
-                DPI *
-                <input className="campo" required
-                  placeholder="13 dígitos" inputMode="numeric"
+                Tipo de titular *
+                <select className="campo"
+                  value={alta.tipoTitular}
+                  onChange={(e) => setAlta({ ...alta, tipoTitular: e.target.value })}>
+                  <option value="PARTICULAR">Particular (vivienda)</option>
+                  <option value="INSTITUCION">Institución</option>
+                </select>
+              </label>
+              {alta.tipoTitular === 'INSTITUCION' ? (
+                <>
+                  <label className="etiqueta">
+                    Categoría *
+                    <select className="campo"
+                      value={alta.categoriaInstitucion}
+                      onChange={(e) => setAlta({ ...alta, categoriaInstitucion: e.target.value })}>
+                      {CATEGORIAS_INSTITUCION.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="etiqueta" style={{ gridColumn: '1 / -1' }}>
+                    Nombre de la institución *
+                    <input className="campo" required
+                      value={alta.nombreCompleto}
+                      onChange={(e) => setAlta({ ...alta, nombreCompleto: e.target.value })} />
+                  </label>
+                </>
+              ) : (
+                <label className="etiqueta" style={{ gridColumn: '1 / -1' }}>
+                  Nombre completo *
+                  <input className="campo" required
+                    value={alta.nombreCompleto}
+                    onChange={(e) => setAlta({ ...alta, nombreCompleto: e.target.value })} />
+                </label>
+              )}
+              <label className="etiqueta">
+                {alta.tipoTitular === 'INSTITUCION' ? 'DPI del responsable (opcional)' : 'DPI *'}
+                <input className="campo" required={alta.tipoTitular !== 'INSTITUCION'}
+                  placeholder="" inputMode="numeric"
                   value={alta.dpi}
                   onChange={(e) => setAlta({ ...alta, dpi: e.target.value })} />
               </label>
               <label className="etiqueta">
                 Teléfono *
                 <input className="campo" required
-                  placeholder="Ej. 55123456" inputMode="tel"
+                  placeholder="" inputMode="tel"
                   value={alta.telefono}
                   onChange={(e) => setAlta({ ...alta, telefono: e.target.value })} />
               </label>
-              <label className="etiqueta">
-                Código de conexión *
-                <input className="campo" required
-                  placeholder="Del cuaderno / correlativo"
-                  value={alta.codigoConexion}
-                  onChange={(e) => setAlta({ ...alta, codigoConexion: e.target.value })} />
-              </label>
-              <label className="etiqueta">
-                Sector / lote
-                <input className="campo"
-                  placeholder="Ej. Sector 2"
-                  value={alta.sector}
-                  onChange={(e) => setAlta({ ...alta, sector: e.target.value })} />
-              </label>
               <label className="etiqueta" style={{ gridColumn: '1 / -1' }}>
-                Dirección
-                <input className="campo"
-                  placeholder="Referencia del predio"
-                  value={alta.direccion}
-                  onChange={(e) => setAlta({ ...alta, direccion: e.target.value })} />
+                Código de conexión
+                <input className="campo" disabled
+                  value="Automático (SF-001, SF-002…)"
+                  readOnly />
+              </label>
+              <label className="etiqueta">
+                Lote *
+                <input className="campo" required
+                  placeholder="Ej. 56"
+                  value={alta.lote}
+                  onChange={(e) => setAlta({ ...alta, lote: e.target.value.replace(/[^\d]/g, '') })} />
+              </label>
+              <label className="etiqueta">
+                Zona / calle *
+                <select className="campo" required
+                  value={alta.zona}
+                  onChange={(e) => setAlta({ ...alta, zona: e.target.value })}>
+                  <option value="">Seleccione…</option>
+                  {ZONAS_SANTA_FE.map((z) => (
+                    <option key={z} value={z}>{z}</option>
+                  ))}
+                </select>
               </label>
               <label className="etiqueta">
                 Modalidad

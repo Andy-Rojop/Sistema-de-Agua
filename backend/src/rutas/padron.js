@@ -433,32 +433,61 @@ router.get('/conexiones', autenticar, exigirPermiso('padron'), async function (r
   } catch (e) { next(e); }
 });
 
+async function siguienteCodigoSf(cliente) {
+  const r = await cliente.query(
+    `SELECT COALESCE(MAX(
+       CASE WHEN codigo ~ '^SF-[0-9]+$'
+            THEN CAST(substring(codigo from 4) AS INTEGER)
+       END
+     ), 0) + 1 AS n
+       FROM conexiones
+      WHERE eliminado_en IS NULL`
+  );
+  const n = Number(r.rows[0].n) || 1;
+  return 'SF-' + String(n).padStart(3, '0');
+}
+
 // RF-01.1 y RF-01.2 — Alta de usuario del servicio y su conexión.
 router.post('/conexiones', autenticar, exigirPermiso('alta_conexion'), async function (req, res, next) {
   try {
     const b = req.body;
-    if (!b.nombres || !b.apellidos || !b.codigoConexion) {
+    const tipoTitular = String(b.tipoTitular || 'PARTICULAR').toUpperCase() === 'INSTITUCION'
+      ? 'INSTITUCION'
+      : 'PARTICULAR';
+
+    if (!b.nombres || !b.apellidos) {
       return res.status(400).json({
-        error: 'Nombres, apellidos y código de conexión son obligatorios.',
+        error: 'El nombre del titular es obligatorio.',
       });
     }
-    if (!String(b.dpi || '').trim() || !String(b.telefono || '').trim()) {
+    if (!String(b.telefono || '').trim()) {
       return res.status(400).json({
-        error: 'DPI y teléfono son obligatorios para registrar al usuario del servicio.',
+        error: 'El teléfono de contacto es obligatorio.',
+      });
+    }
+    const dpi = String(b.dpi || '').trim();
+    if (tipoTitular === 'PARTICULAR' && !dpi) {
+      return res.status(400).json({
+        error: 'DPI y teléfono son obligatorios para un particular.',
       });
     }
 
     const conexion = await enTransaccion(async function (cliente) {
+      const codigoConexion = String(b.codigoConexion || '').trim() || await siguienteCodigoSf(cliente);
+
       const beneficiario = await cliente.query(
-        `INSERT INTO beneficiarios (codigo, nombres, apellidos, dpi, telefono, direccion)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+        `INSERT INTO beneficiarios (codigo, nombres, apellidos, dpi, telefono, direccion, observacion)
+         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
         [
-          b.codigoBeneficiario || b.codigoConexion,
+          b.codigoBeneficiario || codigoConexion,
           String(b.nombres).trim(),
           String(b.apellidos).trim(),
-          String(b.dpi).trim(),
+          dpi || null,
           String(b.telefono).trim(),
           b.direccion ? String(b.direccion).trim() : null,
+          tipoTitular === 'INSTITUCION'
+            ? ('INSTITUCION' + (b.categoriaInstitucion ? ':' + String(b.categoriaInstitucion).trim() : ''))
+            : null,
         ]
       );
 
@@ -466,7 +495,7 @@ router.post('/conexiones', autenticar, exigirPermiso('alta_conexion'), async fun
         `INSERT INTO conexiones (codigo, beneficiario_id, sector, modalidad)
          VALUES ($1, $2, $3, $4) RETURNING id, codigo`,
         [
-          String(b.codigoConexion).trim(),
+          codigoConexion,
           beneficiario.rows[0].id,
           b.sector ? String(b.sector).trim() : null,
           b.modalidad || 'MEDIDA',
