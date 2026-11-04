@@ -35,6 +35,7 @@ const PERMISOS = {
   // Operaciones (espejo del backend)
   alta_conexion: ['ADMINISTRADOR', 'TESORERO'],
   abrir_periodo: ['ADMINISTRADOR', 'TESORERO'],
+  inconsistencias: ['ADMINISTRADOR'],
 };
 
 export const VISTAS = [

@@ -235,8 +235,8 @@ router.post('/lecturas', autenticar, exigirPermiso('lecturas'),
   } catch (e) { next(e); }
 });
 
-// RF-02.8 — Lecturas marcadas para revisión.
-router.get('/lecturas/inconsistentes', autenticar, exigirPermiso('inconsistencias'),
+// RF-02.8 — Lecturas marcadas para revisión (consulta: tablero; resolver: inconsistencias).
+router.get('/lecturas/inconsistentes', autenticar, exigirPermiso('tablero'),
   async function (req, res, next) {
   try {
     const periodo = await periodoAbierto();

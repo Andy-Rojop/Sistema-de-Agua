@@ -140,7 +140,6 @@ export default function App() {
     contenido = (
       <Tablero
         usuario={usuario}
-        opciones={disponibles.filter((v) => v.id !== 'tablero')}
         alIr={ir}
         avisar={avisar}
       />

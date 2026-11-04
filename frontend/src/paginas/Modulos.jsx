@@ -92,10 +92,23 @@ function IconoFlecha() {
   );
 }
 
-export function Tablero({ usuario, opciones = [], alIr, avisar }) {
+function etiquetaInconsistencia(tipo) {
+  if (tipo === 'LECTURA_MENOR') return 'Lectura menor a la anterior';
+  if (tipo === 'CONSUMO_EXCESIVO') return 'Consumo excesivo';
+  if (tipo === 'CONSUMO_CERO') return 'Consumo cero repetido';
+  if (tipo === 'SIN_LECTURA') return 'Sin lectura';
+  return tipo || 'Revisión';
+}
+
+export function Tablero({ usuario, alIr, avisar }) {
   const { datos, cargando, error, recargar } = useCarga(() => api.tablero());
-  const saludo = (usuario?.nombre || 'Comité').trim().split(/\s+/)[0];
+  const revision = useCarga(() => api.lecturasInconsistentes(), []);
+  const [verRevision, setVerRevision] = useState(false);
   const puedeAbrir = Boolean(usuario && puede(usuario.rol, 'abrir_periodo'));
+  const puedeResolver = Boolean(usuario && puede(usuario.rol, 'inconsistencias'));
+  const puedeCobro = Boolean(usuario && puede(usuario.rol, 'cobro'));
+  const puedeCierre = Boolean(usuario && puede(usuario.rol, 'cierre'));
+  const puedeReportes = Boolean(usuario && puede(usuario.rol, 'reportes'));
 
   if (cargando) return <Cargando />;
   if (error) return <Vacio titulo="No se pudo cargar">{error}</Vacio>;
@@ -119,43 +132,116 @@ export function Tablero({ usuario, opciones = [], alIr, avisar }) {
     ? Math.min(100, Math.round((i.recaudado_centavos / i.facturado_centavos) * 100))
     : 0;
   const [, textoEstado] = etiquetaEstadoPeriodo(datos.periodo.estado);
+  const [claseEstado] = etiquetaEstadoPeriodo(datos.periodo.estado);
   const mesNombre = (MESES_LARGOS[datos.periodo.mes - 1] || datos.periodo.mes) + ' ' + datos.periodo.anio;
   const vencimiento = new Date(datos.periodo.fecha_vencimiento).toLocaleDateString('es-GT');
+  const listaRevision = Array.isArray(revision.datos) ? revision.datos : [];
 
-  return (
-    <div className="tablero">
-      <section className="panel-bienvenida">
-        <div className="panel-bienvenida-topo">
-          <p className="eyebrow">Panel del {etiquetaRol(usuario?.rol)}</p>
-          <h2>Hola, {saludo}</h2>
-          <p>
-            {mesNombre} · {textoEstado}. Vence el {vencimiento}.
-          </p>
+  async function resolverRevision(id) {
+    const nota = window.prompt(
+      'Explique cómo se resolvió esta inconsistencia.\n' +
+      'La justificación queda registrada en la bitácora.'
+    );
+    if (!nota || nota.trim().length < 3) return;
+    try {
+      await api.resolverInconsistencia(id, nota.trim());
+      avisar('Inconsistencia resuelta.');
+      revision.recargar();
+      recargar();
+    } catch (e) {
+      avisar(e.message, true);
+    }
+  }
+
+  function abrirRevision() {
+    setVerRevision(true);
+    revision.recargar();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  if (verRevision) {
+    return (
+      <div className="tablero anim-entrar">
+        <button type="button" className="lectura-volver" onClick={() => setVerRevision(false)}>
+          ← Volver al resumen
+        </button>
+        <p className="eyebrow">Periodo {mesNombre}</p>
+        <h2 className="titulo">Por revisar</h2>
+        <p className="subtitulo">
+          Lecturas que impiden cerrar el periodo.
+          {puedeResolver
+            ? ' Puede resolverlas aquí.'
+            : ' Solo el administrador puede marcarlas como resueltas.'}
+        </p>
+
+        {revision.cargando && <Cargando texto="Cargando revisiones…" />}
+        {revision.error && <Aviso tipo="rojo">{revision.error}</Aviso>}
+
+        {!revision.cargando && !revision.error && listaRevision.length === 0 && (
+          <Vacio titulo="Nada pendiente">
+            No hay lecturas por revisar en este periodo.
+          </Vacio>
+        )}
+
+        <div className="revision-lista">
+          {listaRevision.map((l) => (
+            <article key={l.id} className="revision-card">
+              <div className="revision-card-top">
+                <span className="revision-codigo">{l.codigo}</span>
+                <span className="etiqueta-est e-aviso">{etiquetaInconsistencia(l.inconsistencia)}</span>
+              </div>
+              <h3 className="revision-titular">{l.titular}</h3>
+              <p className="revision-meta">
+                Anterior {metrosCubicos(l.lectura_anterior)} · actual {metrosCubicos(l.lectura_actual)}
+                {l.observacion ? ' · ' + l.observacion : ''}
+              </p>
+              <div className="revision-acciones">
+                {puedeCobro && (
+                  <button type="button" className="btn btn-borde btn-mini" onClick={() => alIr('cobro')}>
+                    Ir a cobro
+                  </button>
+                )}
+                {puedeResolver && (
+                  <button type="button" className="btn btn-primario btn-mini" onClick={() => resolverRevision(l.id)}>
+                    Resolver
+                  </button>
+                )}
+              </div>
+            </article>
+          ))}
         </div>
 
-        {opciones.length > 0 && (
-          <div className="panel-atajos">
-            <p className="panel-atajos-titulo">Accesos rápidos</p>
-            <div className="panel-opciones">
-              {opciones.map((op) => (
-                <button
-                  key={op.id}
-                  type="button"
-                  className={'opcion-card opcion-' + op.id}
-                  onClick={() => alIr(op.id)}
-                >
-                  <span className="opcion-icono">
-                    <IconoOpcion id={op.id} />
-                  </span>
-                  <span className="opcion-texto">
-                    <strong>{op.nombre}</strong>
-                    <span>{op.pie}</span>
-                  </span>
-                  <IconoFlecha />
-                </button>
-              ))}
-            </div>
+        {puedeCierre && listaRevision.length > 0 && (
+          <button type="button" className="btn btn-borde btn-ancho" style={{ marginTop: 14 }} onClick={() => alIr('cierre')}>
+            Abrir cierre de periodo
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="tablero anim-entrar">
+      <section className="tablero-pulso">
+        <div className="tablero-pulso-meta">
+          <span className={'etiqueta-est ' + claseEstado}>{textoEstado}</span>
+          <strong>{mesNombre}</strong>
+          <span>Vence {vencimiento}</span>
+        </div>
+        <p className="tablero-pulso-etiqueta">Recaudado del periodo</p>
+        <p className="tablero-pulso-monto num">{quetzales(i.recaudado_centavos)}</p>
+        <p className="tablero-pulso-sub">
+          de {quetzales(i.facturado_centavos)} facturados · {cobradoPct}%
+        </p>
+        <div className="tablero-progreso tablero-pulso-barra">
+          <div className="tablero-progreso-barra" aria-hidden="true">
+            <i style={{ width: cobradoPct + '%' }} />
           </div>
+        </div>
+        {pendienteCentavos > 0 && puedeCobro && (
+          <button type="button" className="btn btn-primario tablero-pulso-cta" onClick={() => alIr('cobro')}>
+            Cobrar pendiente · {quetzales(pendienteCentavos)}
+          </button>
         )}
       </section>
 
@@ -169,27 +255,34 @@ export function Tablero({ usuario, opciones = [], alIr, avisar }) {
         </>
       )}
 
-      <div className="rejilla c4 tablero-kpis">
+      <div className="rejilla c2 tablero-kpis">
         <Indicador
-          etiqueta="Lecturas tomadas"
+          etiqueta="Lecturas"
           valor={i.lecturas_tomadas + '/' + i.con_medidor}
           pie={avance + '% de medidores visitados'}
         />
         <Indicador
           etiqueta="Por revisar"
           valor={i.por_revisar}
-          pie={i.por_revisar ? 'Impiden cerrar el periodo' : 'Sin pendientes'}
+          pie={i.por_revisar ? 'Toque para ver usuarios' : 'Sin pendientes'}
           alerta={i.por_revisar > 0}
+          onClick={abrirRevision}
+          accion={i.por_revisar > 0 ? 'Ver lista →' : 'Revisar'}
         />
         <Indicador
-          etiqueta="Facturado"
-          valor={quetzales(i.facturado_centavos)}
+          etiqueta="Pendiente"
+          valor={quetzales(pendienteCentavos)}
           pie={i.conexiones_activas + ' conexiones activas'}
+          onClick={puedeCobro ? () => alIr('cobro') : undefined}
+          accion={puedeCobro ? 'Ir a cobro →' : undefined}
         />
         <Indicador
-          etiqueta="Recaudado"
-          valor={quetzales(i.recaudado_centavos)}
-          pie={i.conexiones_morosas + ' conexiones morosas'}
+          etiqueta="Morosos"
+          valor={i.conexiones_morosas}
+          pie="Cartera vencida"
+          alerta={i.conexiones_morosas > 0}
+          onClick={puedeReportes ? () => alIr('reportes') : undefined}
+          accion={puedeReportes ? 'Ver reportes →' : undefined}
         />
       </div>
 
@@ -225,15 +318,6 @@ export function Tablero({ usuario, opciones = [], alIr, avisar }) {
               <dd className="num">{quetzales(pendienteCentavos)}</dd>
             </div>
           </dl>
-          <div className="tablero-progreso">
-            <div className="tablero-progreso-etq">
-              <span>Recaudación</span>
-              <strong>{cobradoPct}%</strong>
-            </div>
-            <div className="tablero-progreso-barra" aria-hidden="true">
-              <i style={{ width: cobradoPct + '%' }} />
-            </div>
-          </div>
         </div>
       </div>
     </div>

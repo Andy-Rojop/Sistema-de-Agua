@@ -23,14 +23,26 @@ export function Aviso({ tipo = 'info', children }) {
   return <div className={'aviso a-' + tipo}>{children}</div>;
 }
 
-export function Indicador({ etiqueta, valor, pie, alerta }) {
-  return (
-    <div className={'indicador' + (alerta ? ' alerta' : '')}>
+export function Indicador({ etiqueta, valor, pie, alerta, onClick, accion }) {
+  const clase = 'indicador'
+    + (alerta ? ' alerta' : '')
+    + (onClick ? ' indicador-accion' : '');
+  const interior = (
+    <>
       <div className="etq">{etiqueta}</div>
       <div className="val num">{valor}</div>
       {pie && <div className="pie">{pie}</div>}
-    </div>
+      {onClick && accion ? <div className="indicador-cta">{accion}</div> : null}
+    </>
   );
+  if (onClick) {
+    return (
+      <button type="button" className={clase} onClick={onClick}>
+        {interior}
+      </button>
+    );
+  }
+  return <div className={clase}>{interior}</div>;
 }
 
 export function EstadoRecibo({ estado }) {

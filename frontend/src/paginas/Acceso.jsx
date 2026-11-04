@@ -163,7 +163,7 @@ function PanelRoles({ alElegir, ir }) {
         <MarcaInicio />
         <hr className="inicio-fb-linea" />
         <p className="inicio-fb-aviso">
-          Elija su rol para continuar. El acceso queda en este dispositivo.
+          Elija su rol para Ingresar al Sistema.
         </p>
 
         <div className="inicio-roles" role="list">
