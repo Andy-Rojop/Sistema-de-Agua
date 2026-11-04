@@ -3,28 +3,39 @@
  * ---------------------------------------------------------------------------
  * Único punto por el que el frontend habla con el servidor.
  *
- * El token se guarda en memoria y en sessionStorage: al cerrar la pestaña la
- * sesión termina, que es el comportamiento deseable en una computadora
- * compartida como la de la oficina de la junta local.
+ * El token vive en localStorage para recuperar la sesión al volver al enlace.
+ * La inactividad (~18 min) la controla AvisoSesion: pregunta si desea seguir
+ * o cierra. Salir y el JWT vencido también terminan la sesión.
  */
 
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-let token = sessionStorage.getItem('token') || null;
+function leerGuardado(clave) {
+  return localStorage.getItem(clave) || sessionStorage.getItem(clave) || null;
+}
+
+let token = leerGuardado('token');
 
 export function guardarSesion(nuevoToken, usuario) {
   token = nuevoToken;
-  sessionStorage.setItem('token', nuevoToken);
-  sessionStorage.setItem('usuario', JSON.stringify(usuario));
+  localStorage.setItem('token', nuevoToken);
+  localStorage.setItem('usuario', JSON.stringify(usuario));
+  localStorage.setItem('ultimaActividadSesion', String(Date.now()));
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('usuario');
 }
 
 export function cerrarSesion() {
   token = null;
-  sessionStorage.clear();
+  localStorage.removeItem('token');
+  localStorage.removeItem('usuario');
+  localStorage.removeItem('ultimaActividadSesion');
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('usuario');
 }
 
 export function usuarioActual() {
-  const guardado = sessionStorage.getItem('usuario');
+  const guardado = leerGuardado('usuario');
   return guardado ? JSON.parse(guardado) : null;
 }
 

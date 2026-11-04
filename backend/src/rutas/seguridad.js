@@ -14,6 +14,7 @@ const jwt = require('jsonwebtoken');
 const { rolesDe } = require('../dominio/permisos');
 
 const SECRETO = process.env.JWT_SECRET || 'cambiar-en-produccion';
+/** El aviso de inactividad (~18 min) cierra en el cliente; el JWT cubre la jornada laboral. */
 const HORAS_SESION = Number(process.env.HORAS_SESION || 8);
 
 /** Genera el token de sesión tras un inicio de sesión válido. */

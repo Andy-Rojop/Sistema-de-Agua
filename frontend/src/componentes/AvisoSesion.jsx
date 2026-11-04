@@ -1,5 +1,6 @@
 /**
- * Tras ~18 minutos sin actividad pregunta si desea continuar.
+ * Tras ~18 minutos sin actividad pregunta si desea seguir con la sesión.
+ * También al volver al enlace: si pasaron esos minutos fuera, muestra el aviso.
  * Si no responde en 40 segundos, cierra la sesión.
  */
 
@@ -7,6 +8,23 @@ import { useEffect, useRef, useState } from 'react';
 
 const MINUTOS_INACTIVIDAD = 18;
 const SEGUNDOS_AVISO = 40;
+const CLAVE_ACTIVIDAD = 'ultimaActividadSesion';
+
+function ahora() {
+  return Date.now();
+}
+
+function marcarActividad() {
+  localStorage.setItem(CLAVE_ACTIVIDAD, String(ahora()));
+}
+
+function minutosInactivo() {
+  const raw = localStorage.getItem(CLAVE_ACTIVIDAD);
+  if (!raw) return 0;
+  const t = Number(raw);
+  if (!Number.isFinite(t) || t <= 0) return 0;
+  return (ahora() - t) / 60000;
+}
 
 export function AvisoSesion({ alCerrarSesion }) {
   const [aviso, setAviso] = useState(false);
@@ -15,30 +33,63 @@ export function AvisoSesion({ alCerrarSesion }) {
   const timerCuenta = useRef(null);
   const avisoRef = useRef(false);
 
+  function abrirAviso() {
+    if (avisoRef.current) return;
+    avisoRef.current = true;
+    setAviso(true);
+    setSegundos(SEGUNDOS_AVISO);
+  }
+
   function programarInactividad() {
     clearTimeout(timerInactividad.current);
     if (avisoRef.current) return;
-    timerInactividad.current = setTimeout(function () {
-      avisoRef.current = true;
-      setAviso(true);
-      setSegundos(SEGUNDOS_AVISO);
-    }, MINUTOS_INACTIVIDAD * 60 * 1000);
+    timerInactividad.current = setTimeout(abrirAviso, MINUTOS_INACTIVIDAD * 60 * 1000);
+  }
+
+  function registrarActividad() {
+    if (avisoRef.current) return;
+    marcarActividad();
+    programarInactividad();
+  }
+
+  function evaluarAlVolver() {
+    if (avisoRef.current) return;
+    if (minutosInactivo() >= MINUTOS_INACTIVIDAD) {
+      clearTimeout(timerInactividad.current);
+      abrirAviso();
+    } else {
+      programarInactividad();
+    }
   }
 
   useEffect(function () {
+    if (!localStorage.getItem(CLAVE_ACTIVIDAD)) {
+      marcarActividad();
+    }
+    evaluarAlVolver();
+
     const eventos = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
     function alActividad() {
-      if (avisoRef.current) return;
-      programarInactividad();
+      registrarActividad();
     }
     eventos.forEach(function (ev) {
       window.addEventListener(ev, alActividad, { passive: true });
     });
-    programarInactividad();
+
+    function alVisibilidad() {
+      if (document.visibilityState === 'visible') {
+        evaluarAlVolver();
+      }
+    }
+    document.addEventListener('visibilitychange', alVisibilidad);
+    window.addEventListener('focus', evaluarAlVolver);
+
     return function () {
       eventos.forEach(function (ev) {
         window.removeEventListener(ev, alActividad);
       });
+      document.removeEventListener('visibilitychange', alVisibilidad);
+      window.removeEventListener('focus', evaluarAlVolver);
       clearTimeout(timerInactividad.current);
       clearInterval(timerCuenta.current);
     };
@@ -60,6 +111,7 @@ export function AvisoSesion({ alCerrarSesion }) {
   useEffect(function () {
     if (aviso && segundos === 0) {
       clearInterval(timerCuenta.current);
+      localStorage.removeItem(CLAVE_ACTIVIDAD);
       alCerrarSesion();
     }
   }, [aviso, segundos, alCerrarSesion]);
@@ -68,7 +120,13 @@ export function AvisoSesion({ alCerrarSesion }) {
     avisoRef.current = false;
     setAviso(false);
     setSegundos(SEGUNDOS_AVISO);
+    marcarActividad();
     programarInactividad();
+  }
+
+  function cerrar() {
+    localStorage.removeItem(CLAVE_ACTIVIDAD);
+    alCerrarSesion();
   }
 
   if (!aviso) return null;
@@ -77,9 +135,10 @@ export function AvisoSesion({ alCerrarSesion }) {
     <div className="sesion-velo" role="dialog" aria-modal="true" aria-labelledby="sesion-aviso-titulo">
       <div className="sesion-aviso">
         <p className="sesion-aviso-eyebrow">Sesión inactiva</p>
-        <h2 id="sesion-aviso-titulo">¿Desea continuar con la sesión?</h2>
+        <h2 id="sesion-aviso-titulo">¿Desea seguir con el inicio de sesión?</h2>
         <p className="sesion-aviso-texto">
-          Por seguridad, si no responde se cerrará el acceso automáticamente.
+          Han pasado unos minutos sin actividad. Si no responde, se cerrará el acceso
+          por seguridad.
         </p>
         <p className="sesion-aviso-cuenta" aria-live="polite">
           <span className="sesion-aviso-numero">{segundos}</span>
@@ -87,9 +146,9 @@ export function AvisoSesion({ alCerrarSesion }) {
         </p>
         <div className="sesion-aviso-acciones">
           <button type="button" className="btn btn-primario btn-grande" onClick={continuar}>
-            Continuar
+            Sí, continuar
           </button>
-          <button type="button" className="btn btn-borde" onClick={alCerrarSesion}>
+          <button type="button" className="btn btn-borde" onClick={cerrar}>
             Cerrar sesión
           </button>
         </div>
